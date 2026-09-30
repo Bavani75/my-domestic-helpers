@@ -1,41 +1,47 @@
-# vibe-stack-supabase
+# Household — Chairman House
 
-Next.js 15 + Supabase starter for shipping vibe-coded apps fast. Clone, provision, build.
+A mobile-first duty checklist and maintenance tracker built with Next.js and Supabase.
 
-## Stack
+## Run
 
-| Layer | Choice |
-|---|---|
-| Framework | Next.js 15 (App Router, React 19, Server Actions) |
-| Language | TypeScript strict |
-| Styles | Tailwind CSS v4 (CSS-first, no config file) |
-| Auth + DB | Supabase (`@supabase/ssr`) |
-| Package manager | Bun |
-| Deploy | Vercel |
+Use Node.js 22+ and pnpm:
 
-## Quick start
+    pnpm install
+    vercel link --project my-domestic-helpers
+    vercel env pull .env.local
+    pnpm verify:db
+    pnpm dev
 
-```bash
-bun install
-cp .env.example .env.local   # fill in your Supabase keys
-bun dev
-```
+Use the existing Vercel/Supabase project. Never commit .env.local. The app deliberately
+has no login wall in v1 and is a shared demo; use sample information until the later
+authentication and RLS sprint.
 
-Open http://localhost:3000. Edit `app/page.tsx` to start building.
+## Database
 
-## Provisioning a new project
+Check the live tables before applying any SQL. supabase/migrations/0001_init.sql
+contains the original schema and seed data and must not be replayed on an existing
+database. Apply 0002_workflow.sql once to add signed photo storage, append-only
+audit logging, and a weekday for the incomplete AC-filter seed. It preserves existing
+data. Database access lives in lib/data; all app writes use server actions.
 
-Use the `/new-vibe-project <name>` skill (see `claude-dotfiles` repo) which:
-1. Clones this template and renames it
-2. Creates a new GitHub repo and pushes
-3. Creates a Supabase project and injects URL + anon key
-4. Creates a Vercel project linked to the GitHub repo
-5. Triggers first deploy and returns the preview URL
+The weekly AC task appears only on its configured weekday. To demonstrate the exact
+five-duty PRD scenario on another day, edit its weekday in Schedules.
 
-## Working with AI
+## Checks
 
-See [CLAUDE.md](CLAUDE.md) for conventions. This repo is pre-wired for gstack — start with `/office-hours`.
+    pnpm test
+    pnpm lint
+    pnpm typecheck
+    pnpm build
 
-## Switching to Neon
+See docs/TEST_PLAN.md for the live five-duty and maintenance acceptance scenario,
+and docs/BUILD_STATUS.md for verified results and remaining provisioning work.
 
-If you need Postgres without Supabase (e.g. prefer Drizzle ORM + Clerk for auth), a `vibe-stack-neon` variant is planned. For now: fork this and swap `@supabase/ssr` for `drizzle-orm` + `@neondatabase/serverless`, add Clerk or NextAuth.
+## Deploy
+
+Commit and push to main. Vercel must be linked to this GitHub repository.
+Do not deploy local files with the Vercel deployment CLI.
+
+Dates and completion counts use Asia/Kuala_Lumpur. Open dashboards refresh every
+15 seconds. Weekly ranking uses the current schedule and assignment, excludes dates
+before schedule creation, and counts only completed due occurrences.
